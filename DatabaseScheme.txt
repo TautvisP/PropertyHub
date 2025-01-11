@@ -1,0 +1,311 @@
+%% Written using mermaid live editor
+
+classDiagram  
+Listing "1" --> "0..*" Image  
+Property "1" --> "1" Listing  
+User "1" --> "0..*" Property  
+ 
+%%Rent contract and payment tracking 
+Property "1" --> "0..1" RentalContract 
+RentalContract "1" --> "0..*" RentPayment 
+User "1" --> "0..*" RentalContract : tenant 
+RentalContract "1" --> "1" User : propertyOwner 
+ 
+%%Maintenance and communication 
+RentalContract "1" --> "0..*" MaintenanceRequest 
+User "1" --> "0..*" Message : sender 
+User "1" --> "0..*" Message : receiver 
+RentalContract "1" --> "0..*" Message 
+ 
+%%User roles 
+User "1" --> "0..*" UserRole 
+UserRole "1" --> "1" Role 
+ 
+%%Reviews and penalties 
+User "1" --> "0..*" Review : reviewer 
+User "1" --> "0..*" Review : reviewee 
+User "1" --> "0..*" Penalty 
+ 
+%%Users searches and favorites 
+User "1" --> "0..*" SavedSearch 
+Listing "1" --> "0..*" FavoriteListing 
+User "1" --> "0..*" FavoriteListing 
+Listing "0..*" --> "0..*" SavedSearchListing 
+ 
+%%Tracking of user interactions with listings 
+User "1" --> "0..*" ListingImpression 
+Listing "1" --> "0..*" ListingImpression 
+Listing "1" --> "0..*" ListingStats 
+ 
+%%Auction tables  
+AuctionListing "1" --> "0..*" Bid 
+User "1" --> "0..*" AuctionNotification 
+ 
+%%Forum subsytem 
+User "1" --> "0..*" Topic : creates 
+User "1" --> "0..*" Post : authors 
+User "1" --> "0..*" Comment : writes 
+Topic "1" --> "0..*" Post : contains 
+Post "1" --> "0..*" Comment : has 
+ 
+ 
+Listing <|-- SellListing 
+Listing <|-- RentListing 
+Listing <|-- AuctionListing 
+ 
+class Listing { 
+int listingId 
+int fk_propertyId 
+listingType type 
+dateTime createdAt 
+varchar description 
+int visitationCount 
+bool isActive 
+} 
+ 
+class SellListing { 
+int fk_listingId 
+bool isSold 
+} 
+ 
+class RentListing { 
+int fk_listingId 
+int rentDuration 
+bool isRented 
+} 
+ 
+class AuctionListing { 
+int fk_listingId 
+float startingBid 
+dateTime auctionStart 
+datetime auctionEnd 
+float currentBid 
+float minBiddingInterval 
+bool auctionStatus 
+int currentBidderId  
+} 
+ 
+class Property {  
+int propertyId  
+int fk_ownerID  
+propertyType type  
+varchar country  
+varchar city  
+varchar adress  
+float price  
+float pricePerAcre  
+float pricePerArea  
+float latitude  
+float longitude  
+float area  
+float landArea  
+int numRooms  
+int floor  
+int maxFloors  
+dateTime buildYears  
+buildType buildMaterial  
+varchar heatingType  
+varchar purpose  
+int completion  
+varchar efficiencyClass  
+bool furnished  
+}  
+ 
+class Image {  
+int imageId  
+int listingId  
+String filePath  
+String fileType  
+DateTime uploadedAt  
+bool isPrimary  
+}  
+ 
+class User { 
+int userId 
+varchar firstName 
+varchar lastName 
+varchar email 
+varchar passwordHash 
+dateTime registrationDate 
+float reputation 
+int ratingCount 
+bool isBanned 
+} 
+ 
+class UserRole { 
+int userRoleId 
+int fk_userId 
+int fk_roleId 
+} 
+ 
+class Role { 
+int roleId 
+varchar roleName -- ('landlord', 'renter', 'admin') 
+} 
+ 
+class Review { 
+int reviewId 
+int fk_reviewerId 
+int fk_revieweeId 
+int rating 
+text reviewText 
+dateTime reviewDate 
+} 
+ 
+class Penalty { 
+int penaltyId 
+int fk_userId 
+varchar penaltyType 
+text penaltyDescription 
+int penaltyAmount 
+dateTime penaltyDate 
+} 
+ 
+class FavoriteListing { 
+int favoriteId 
+int fk_userId 
+int fk_listingId 
+dateTime dateAdded 
+} 
+ 
+class SavedSearch { 
+int searchId 
+int fk_userId 
+text searchQuery 
+dateTime searchDate 
+varchar searchName 
+dateTime lastChecked 
+} 
+ 
+%%Whenever a new listing is created, check if it matches any of the saved searches, and if it does, add an entry in SavedSearchListings that links the saved search and the new listing. 
+%%When the user checks their saved searches, query SavedSearchListings to show all listings associated with the search since lastChecked. 
+%%After the user checks, update the lastChecked timestamp 
+class SavedSearchListing { 
+int savedSearchListingId 
+int fk_searchId 
+int fk_listingId 
+dateTime listingCreated 
+} 
+ 
+class ListingImpression { 
+int impressionId 
+int fk_listingId 
+int fk_userId 
+dateTime impressionDate 
+bool clicked 
+} 
+ 
+class Bid { 
+int bidId 
+int fk_auctionListingId 
+int fk_userId 
+float bidAmount 
+dateTime bidDate 
+} 
+ 
+class AuctionNotification { 
+int notificationId 
+int fk_userId 
+int fk_auctionListingId 
+float newBidAmount 
+dateTime notificationDate 
+bool isRead 
+} 
+ 
+class ListingStats { 
+int listingStatsId 
+int fk_propertyId 
+float totalIncome 
+float totalExpenses 
+int viewsCount 
+int favoritesCount 
+dateTime statsDate 
+} 
+ 
+class RentalContract { 
+int contractId 
+int fk_propertyId 
+int fk_ownerId 
+int fk_tenantId 
+float monthlyRent 
+float depositAmount 
+dateTime contractStart 
+dateTime contractEnd 
+bool isActive 
+} 
+ 
+class RentPayment { 
+int paymentId 
+int fk_contractId 
+dateTime dueDate 
+float amountDue 
+float amountPaid 
+bool isPaid 
+} 
+ 
+class MaintenanceRequest { 
+int requestId 
+int fk_contractId 
+text requestDetails 
+dateTime requestDate 
+varchar status -- ('pending', 'in progress', 'resolved') 
+} 
+ 
+class Message { 
+int messageId 
+int fk_contractId 
+int fk_senderId 
+int fk_receiverId 
+text messageText 
+dateTime messageDate 
+} 
+ 
+class Topic { 
+int topicId 
+int fk_creatorId 
+varchar title 
+text description 
+dateTime createdAt 
+bool isClosed 
+} 
+ 
+class Post { 
+int postId 
+int fk_topicId 
+int fk_authorId 
+text content 
+dateTime createdAt 
+bool isEdited 
+} 
+ 
+class Comment { 
+int commentId 
+int fk_postId 
+int fk_authorId 
+text content 
+dateTime createdAt 
+bool isEdited 
+} 
+ 
+class propertyType {  
+<<enumeration>>  
+apartament  
+house  
+commercial  
+land  
+}  
+ 
+class buildType {  
+<<enumeration>>  
+brick  
+block  
+wood  
+}  
+ 
+class listingType {  
+<<enumeration>>  
+sell  
+rent  
+auction  
+
+} 
